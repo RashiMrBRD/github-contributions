@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - "rules/*.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'home_assistant'
+    metrics_path: /api/prometheus
+    bearer_token: 'YOUR_LONG_LIVED_ACCESS_TOKEN'
+    static_configs:
+      - targets: ['homeassistant:8123']
+
+  - job_name: 'esp32_sensors'
+    static_configs:
+      - targets: ['mqtt-exporter:9641']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  - job_name: 'smart_meter'
+    static_configs:
+      - targets: ['power-monitor:9642']
+    metrics_path: /metrics
+    scrape_interval: 60s
