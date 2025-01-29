@@ -8,44 +8,41 @@ const path = "./data.json";
 const makeCommits = (n) => {
     if(n === 0) return simpleGit().push();
     
-    // Simulate different types of development days
+    // Much higher chance of activity
     const dayType = random.int(1, 100);
     let commitsPerDay;
     let commitMessage;
     
-    if (dayType <= 5) {
-        // Hackathon or major feature launch (5% chance) - 25-40 commits
-        commitsPerDay = random.int(25, 40);
-        commitMessage = "feat: Major feature implementation - ";
-    } else if (dayType <= 15) {
-        // Very productive day (10% chance) - 15-25 commits
-        commitsPerDay = random.int(15, 25);
-        commitMessage = "feat: Intensive development - ";
-    } else if (dayType <= 35) {
-        // Normal productive day (20% chance) - 5-12 commits
-        commitsPerDay = random.int(5, 12);
-        commitMessage = "feat: Daily progress - ";
-    } else if (dayType <= 60) {
-        // Light work day (25% chance) - 1-4 commits
-        commitsPerDay = random.int(1, 4);
-        commitMessage = "fix: Minor updates - ";
+    if (dayType <= 15) {
+        // Very heavy development day (15% chance) - 20-30 commits
+        commitsPerDay = random.int(20, 30);
+        commitMessage = "feat: Major development - ";
+    } else if (dayType <= 45) {
+        // Active development day (30% chance) - 10-19 commits
+        commitsPerDay = random.int(10, 19);
+        commitMessage = "feat: Active development - ";
+    } else if (dayType <= 85) {
+        // Regular work day (40% chance) - 4-9 commits
+        commitsPerDay = random.int(4, 9);
+        commitMessage = "feat: Regular updates - ";
     } else {
-        // No activity (40% chance) - skip this iteration
-        return makeCommits(n - 1);
+        // Light day (15% chance) - 1-3 commits
+        commitsPerDay = random.int(1, 3);
+        commitMessage = "fix: Minor changes - ";
     }
     
-    // Select a date within last 3 years
-    const yearsBack = random.int(0, 2);
+    // Concentrate on the last year with occasional older commits
+    const yearsBack = random.int(0, 100) <= 90 ? 0 : 1;  // 90% chance of being in the last year
     const daysBack = random.int(0, 364);
     
     const baseDate = moment()
         .subtract(yearsBack, "y")
         .subtract(daysBack, "d");
     
-    // Create commits throughout the day
+    // Create commits throughout the day with focus on work hours
     for(let i = 0; i < commitsPerDay; i++) {
-        // Distribute commits throughout working hours (9 AM - 11 PM)
-        const hour = random.int(9, 23);
+        // Concentrate commits during work hours (10 AM - 7 PM)
+        const hour = random.int(10, 19);
         const minute = random.int(0, 59);
         
         const date = baseDate
@@ -58,46 +55,46 @@ const makeCommits = (n) => {
             continue;
         }
         
-        // Generate realistic commit messages based on the type of work
+        // More focused commit messages for consistency
         const messages = [
-            "Add new features to",
-            "Implement",
             "Update",
+            "Enhance",
+            "Improve",
             "Optimize",
             "Refactor",
-            "Fix bugs in",
-            "Improve",
-            "Enhance"
+            "Add features to",
+            "Fix issues in",
+            "Implement changes in"
         ];
         
         const components = [
-            "docker stack",
-            "monitoring system",
-            "media server",
-            "home automation",
-            "security",
-            "network configuration",
+            "core functionality",
+            "user interface",
+            "backend services",
+            "API endpoints",
+            "database schema",
+            "authentication system",
+            "monitoring tools",
+            "deployment process",
             "documentation",
-            "test coverage",
-            "CI/CD pipeline",
-            "deployment scripts"
+            "test suite"
         ];
         
         const details = [
             "for better performance",
-            "to fix edge cases",
-            "based on feedback",
-            "to improve reliability",
-            "for enhanced security",
-            "to reduce complexity",
-            "for better maintainability"
+            "for improved reliability",
+            "to enhance user experience",
+            "to fix reported issues",
+            "based on user feedback",
+            "to meet requirements",
+            "for better stability"
         ];
         
         const message = `${commitMessage}${random.choice(messages)} ${random.choice(components)} ${random.choice(details)}`;
             
         jsonfile.writeFile(path, { 
             date: date.format(),
-            type: dayType <= 15 ? "major_development" : "regular_work",
+            type: dayType <= 45 ? "major_development" : "regular_work",
             commit_number: i + 1,
             total_commits: commitsPerDay
         }, () => {
@@ -110,5 +107,5 @@ const makeCommits = (n) => {
     }
 }
 
-// Generate a large number of commits to fill the history
-makeCommits(2000);
+// Generate more commits to match the density
+makeCommits(3000);
