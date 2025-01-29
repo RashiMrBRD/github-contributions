@@ -4,67 +4,111 @@ import simpleGit from "simple-git";
 import random from "random";
 
 const path = "./data.json";
-const date = moment().format();
-
-// const markCommit = (x, y) => {
-//     const date = moment()
-//     .subtract(1, "y")
-//     .add(1, "d")
-//     .add(x, "w")
-//     .add(y, "d")
-//     .format();
-// }
 
 const makeCommits = (n) => {
     if(n === 0) return simpleGit().push();
     
-    // Randomly select a year (0-3 years back)
-    const yearsBack = random.int(0, 3);
-    const x = random.int(0, 54);
-    const y = random.int(0, 6);
+    // Simulate different types of development days
+    const dayType = random.int(1, 100);
+    let commitsPerDay;
+    let commitMessage;
     
-    // 30% chance of having a "very active" day (10-15 commits)
-    // 70% chance of having a "normal" day (3-7 commits)
-    const isVeryActiveDay = random.int(1, 100) <= 30;
-    const commitsPerDay = isVeryActiveDay ? 
-        random.int(10, 15) : // Very active day
-        random.int(3, 7);    // Normal day
+    if (dayType <= 5) {
+        // Hackathon or major feature launch (5% chance) - 25-40 commits
+        commitsPerDay = random.int(25, 40);
+        commitMessage = "feat: Major feature implementation - ";
+    } else if (dayType <= 15) {
+        // Very productive day (10% chance) - 15-25 commits
+        commitsPerDay = random.int(15, 25);
+        commitMessage = "feat: Intensive development - ";
+    } else if (dayType <= 35) {
+        // Normal productive day (20% chance) - 5-12 commits
+        commitsPerDay = random.int(5, 12);
+        commitMessage = "feat: Daily progress - ";
+    } else if (dayType <= 60) {
+        // Light work day (25% chance) - 1-4 commits
+        commitsPerDay = random.int(1, 4);
+        commitMessage = "fix: Minor updates - ";
+    } else {
+        // No activity (40% chance) - skip this iteration
+        return makeCommits(n - 1);
+    }
+    
+    // Select a date within last 3 years
+    const yearsBack = random.int(0, 2);
+    const daysBack = random.int(0, 364);
     
     const baseDate = moment()
         .subtract(yearsBack, "y")
-        .add(1, "d")
-        .add(x, "w")
-        .add(y, "d");
+        .subtract(daysBack, "d");
     
-    // Create multiple commits for the same day
+    // Create commits throughout the day
     for(let i = 0; i < commitsPerDay; i++) {
+        // Distribute commits throughout working hours (9 AM - 11 PM)
+        const hour = random.int(9, 23);
+        const minute = random.int(0, 59);
+        
         const date = baseDate
             .clone()
-            .add(random.int(0, 23), "h")  // Random hour in the day
-            .add(random.int(0, 59), "m")   // Random minute
-            .format();
+            .add(hour, "h")
+            .add(minute, "m");
+
+        // Skip if date is in the future
+        if (date.isAfter(moment())) {
+            continue;
+        }
+        
+        // Generate realistic commit messages based on the type of work
+        const messages = [
+            "Add new features to",
+            "Implement",
+            "Update",
+            "Optimize",
+            "Refactor",
+            "Fix bugs in",
+            "Improve",
+            "Enhance"
+        ];
+        
+        const components = [
+            "docker stack",
+            "monitoring system",
+            "media server",
+            "home automation",
+            "security",
+            "network configuration",
+            "documentation",
+            "test coverage",
+            "CI/CD pipeline",
+            "deployment scripts"
+        ];
+        
+        const details = [
+            "for better performance",
+            "to fix edge cases",
+            "based on feedback",
+            "to improve reliability",
+            "for enhanced security",
+            "to reduce complexity",
+            "for better maintainability"
+        ];
+        
+        const message = `${commitMessage}${random.choice(messages)} ${random.choice(components)} ${random.choice(details)}`;
             
         jsonfile.writeFile(path, { 
-            date: date,
+            date: date.format(),
+            type: dayType <= 15 ? "major_development" : "regular_work",
             commit_number: i + 1,
-            total_commits: commitsPerDay,
-            type: isVeryActiveDay ? "high_activity" : "normal_activity"
+            total_commits: commitsPerDay
         }, () => {
             simpleGit().add([path]).commit(
-                `Update ${date} (${i + 1}/${commitsPerDay})`, 
-                {"--date": date}, 
+                message, 
+                {"--date": date.format()}, 
                 i === commitsPerDay - 1 ? () => makeCommits(n - 1) : null
             );
         });
     }
 }
 
-const data = {
-    date: date,
-};
-console.log(date);
-jsonfile.writeFile(path, data);
-
-// Increase the number of iterations for more commits
-// This will create around 300-400 commits per year
-makeCommits(1000);
+// Generate a large number of commits to fill the history
+makeCommits(2000);
